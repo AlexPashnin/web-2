@@ -81,7 +81,7 @@ public class Client {
                         System.out.println("birthdate(yyyy-mm-dd):");
                         createBirthdate = readDate(reader);
                     } while (createBirthdate == null);
-                    Long createdId = 0L;
+                    Long createdId = astartesPort.create(createName, createTitle, createPosition, createPlanet, createBirthdate);
                     System.out.println("ID новой записи: " + createdId);
                     currentState = 0;
                     break;
@@ -106,7 +106,8 @@ public class Client {
                     String updatePlanet = readString(reader);
                     System.out.println("birthdate(yyyy-mm-dd):");
                     XMLGregorianCalendar updateBirthdate = readDate(reader);
-                    System.out.println("Значение изменено (или нет. Об этом мы узнаем в следующей лабе)");
+                    int updateRes = astartesPort.update(updateId, updateName, updateTitle, updatePosition, updatePlanet, updateBirthdate);
+                    System.out.println("Изменено "+updateRes+" строк");
                     currentState = 0;
                     break;
                 case 5:
@@ -119,7 +120,8 @@ public class Client {
                         currentState = 0;
                         break;
                     }
-                    System.out.println("Значение удалено (или нет. Об этом мы узнаем в следующей лабе)");
+                    int deleteRes = astartesPort.delete(deleteId);
+                    System.out.println("Удалено "+deleteRes+" строк");
                     currentState = 0;
                     break;
                 case 6:
@@ -177,7 +179,8 @@ public class Client {
 
     private static String astartesToString(Astartes astartes) {
         return "Astartes(" +
-                "name=" + astartes.getName() +
+                "id=" + astartes.getId() +
+                ", name=" + astartes.getName() +
                 ", title=" + astartes.getTitle() +
                 ", position=" + astartes.getPosition() +
                 ", planet=" + astartes.getPlanet() +

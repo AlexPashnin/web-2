@@ -29,4 +29,23 @@ public class AstartesService {
                                           @WebParam(name = "planet") String planet, @WebParam(name = "birthdate") Date birthdate) throws SQLException {
         return astartesDAO.findWithFilters(id, name, title, position, planet, birthdate);
     }
+
+    @WebMethod
+    public int update(@WebParam(name = "id") Long id, @WebParam(name = "name") String name,
+                      @WebParam(name = "title") String title, @WebParam(name = "position") String position,
+                      @WebParam(name = "planet") String planet, @WebParam(name = "birthdate") Date birthdate) throws SQLException {
+        return astartesDAO.update(id, name, title, position, planet, birthdate);
+    }
+
+    @WebMethod
+    public int delete(@WebParam(name = "id") Long id) throws SQLException {
+        return astartesDAO.delete(id);
+    }
+
+    @WebMethod
+    public Long create(@WebParam(name = "name") String name,
+                       @WebParam(name = "title") String title, @WebParam(name = "position") String position,
+                       @WebParam(name = "planet") String planet, @WebParam(name = "birthdate") Date birthdate) throws SQLException {
+        return astartesDAO.create(name, title, position, planet, birthdate);
+    }
 }

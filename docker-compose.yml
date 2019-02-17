@@ -5,4 +5,4 @@ services:
     ports:
       - "5432:5432"
     image: astartes_db_image
-    container_name: webdb
+    container_name: webdb-2

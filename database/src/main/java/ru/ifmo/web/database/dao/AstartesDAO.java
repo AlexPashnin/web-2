@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -108,6 +109,105 @@ public class AstartesDAO {
             return resultSetToList(rs);
         }
 
+    }
+
+    public Long create(String name, String title, String position, String planet, Date birthdate) throws SQLException {
+        log.debug("Create with params {} {} {} {} {}", name, title, position, planet, birthdate);
+        try (Connection connection = dataSource.getConnection()) {
+            StringBuilder query = new StringBuilder();
+            query.append("INSERT INTO ").append(TABLE_NAME).append("(").append(String.join(",", columnNames)).append(") VALUES(?,?,?,?,?,?)");
+            connection.setAutoCommit(false);
+            long newId;
+            try (java.sql.Statement idStatement = connection.createStatement()) {
+                idStatement.execute("SELECT nextval('astartes_id_seq') nextval");
+                try (ResultSet rs = idStatement.getResultSet()) {
+                    rs.next();
+                    newId = rs.getLong("nextval");
+                }
+
+            }
+            try (PreparedStatement stmnt = connection.prepareStatement(query.toString())) {
+                stmnt.setLong(1, newId);
+                stmnt.setString(2, name);
+                stmnt.setString(3, title);
+                stmnt.setString(4, position);
+                stmnt.setString(5, planet);
+                stmnt.setDate(6, new java.sql.Date(birthdate.getTime()));
+                int count = stmnt.executeUpdate();
+                if (count == 0) {
+                    throw new RuntimeException("Could not execute query");
+                }
+            }
+            connection.commit();
+            connection.setAutoCommit(true);
+            return newId;
+        }
+    }
+
+    public int delete(long id) throws SQLException {
+        log.debug("Delete with id {}", id);
+        try (Connection connection = dataSource.getConnection()) {
+            connection.setAutoCommit(true);
+            try (PreparedStatement ps = connection.prepareStatement("DELETE FROM " + TABLE_NAME + " WHERE id = ?")) {
+                ps.setLong(1, id);
+                return ps.executeUpdate();
+            }
+        }
+    }
+
+    public int update(long id, String name, String title, String position, String planet, Date birthdate) throws SQLException {
+        log.debug("Update id {} and new values {} {} {} {} {}", id, name, title, position, planet, birthdate);
+        try (Connection conn = dataSource.getConnection()) {
+            conn.setAutoCommit(true);
+            StringBuilder query = new StringBuilder("UPDATE " + TABLE_NAME + " SET ");
+            int i = 1;
+            List<Statement> statements = new ArrayList<>();
+            if (name != null) {
+                query.append(NAME).append("= ?");
+                statements.add(new Statement(i, name, getSqlType(String.class)));
+                i++;
+            }
+            if (title != null) {
+                if (!statements.isEmpty()) {
+                    query.append(", ");
+                }
+                query.append(TITLE).append("= ?");
+                statements.add(new Statement(i, title, getSqlType(String.class)));
+                i++;
+            }
+            if (position != null) {
+                if (!statements.isEmpty()) {
+                    query.append(", ");
+                }
+                query.append(POSITION).append("= ?");
+                statements.add(new Statement(i, position, getSqlType(String.class)));
+                i++;
+            }
+            if (planet != null) {
+                if (!statements.isEmpty()) {
+                    query.append(", ");
+                }
+                query.append(PLANET).append("= ?");
+                statements.add(new Statement(i, planet, getSqlType(String.class)));
+                i++;
+            }
+            if (birthdate != null) {
+                if (!statements.isEmpty()) {
+                    query.append(", ");
+                }
+                query.append(BIRTHDATE).append("= ?");
+                statements.add(new Statement(i, birthdate, getSqlType(Date.class)));
+                i++;
+            }
+
+            statements.add(new Statement(i, id, getSqlType(Long.class)));
+            query.append(" WHERE id = ?");
+            try (PreparedStatement ps = conn.prepareStatement(query.toString())) {
+                fillPreparedStatement(ps, statements);
+                int updated = ps.executeUpdate();
+                return updated;
+            }
+        }
     }
 
     private List<Astartes> resultSetToList(ResultSet rs) throws SQLException {
